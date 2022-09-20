@@ -55,6 +55,11 @@ def get_info(pg):
         print('Системные требования:')
         for tt in (req.next_sibling.next_sibling.next_sibling.next_sibling.findChildren('li', recursive=False)):
             print(tt.text)
+    if check_for_text('Похожие игры', ch_req):
+        same_games = g_html.find('h2', {'class':'nhead'}, string='Похожие игры')
+        print('Похожие игры:')
+        for sg in (same_games.next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.findChildren('li', recursive=False)):
+            print(sg.text)
     
 
 
@@ -73,8 +78,6 @@ def get_all():
             get_title(page)
             get_info(page)
             get_pic(sh_elem)
-            break
-        break
 
 if __name__ == '__main__':
     get_all()
