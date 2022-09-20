@@ -7,6 +7,12 @@ def get_pic_name(url):
     lt = url.split('/')
     return lt[len(lt) - 1]
 
+def check_for_text(txt, html):
+    for el in html:
+        if el.text == txt:
+            return True
+    return False
+
 def get_pic(div):
     url = div.findChildren('a', recursive=False)[0].findChildren('div', recursive=False)[0].findChildren('img', recursive=False)[0]['src']
     if url != '/img/no_game_img_mini.jpg':
@@ -28,13 +34,28 @@ def get_info(pg):
     g_html = BeautifulSoup(pg.text, 'lxml')
     elems = g_html.find_all('div', {'class': 'rads'})
     descr = g_html.find('div', {'class':'game_story description'})
+    genres = g_html.find_all('div', {'class': 'gres'})[0].findChildren('a', recursive=False)
+    ch_req = g_html.find('div', {'class':'wrap ld'}).findChildren('ul', recursive=False)[0].findChildren('li', recursive=False)
+    print('Дата выхода:', end=' ')
     if elems[0].findChildren('div', {'class': 'game_rank'}):
         print(elems[1].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text) #дата выхода
+        print('Команда разработчиков:', end=' ')
         print(elems[2].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text) #разработчик
     else:
         print(elems[0].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text) #дата выхода
+        print('Команда разработчиков:', end=' ')
         print(elems[1].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text) #разработчик
+    print('Описание игры:')
     print(descr.findChildren('p', recursive=False)[0].text)
+    print('Жанры:')
+    for el in genres:
+        print(el.text)
+    if check_for_text('Системные требования', ch_req):
+        req = g_html.find('h2', {'class':'nhead'}, string='Системные требования')
+        print('Системные требования:')
+        for tt in (req.next_sibling.next_sibling.next_sibling.next_sibling.findChildren('li', recursive=False)):
+            print(tt.text)
+    
 
 
 def get_all():
@@ -48,9 +69,12 @@ def get_all():
 
         for sh_elem in game_shit:
             page = requests.get('https://vgtimes.ru/' + sh_elem.findChildren('a', recursive=False)[0]['href'])
+            print('Название игры:', end=' ')
             get_title(page)
             get_info(page)
             get_pic(sh_elem)
+            break
+        break
 
 if __name__ == '__main__':
     get_all()
