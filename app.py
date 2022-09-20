@@ -27,12 +27,15 @@ def get_title(pg):
 def get_info(pg):
     g_html = BeautifulSoup(pg.text, 'lxml')
     elems = g_html.find_all('div', {'class': 'rads'})
+    descr = g_html.find('div', {'class':'game_story description'})
     if elems[0].findChildren('div', {'class': 'game_rank'}):
         print(elems[1].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text) #дата выхода
         print(elems[2].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text) #разработчик
     else:
         print(elems[0].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text) #дата выхода
         print(elems[1].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text) #разработчик
+    print(descr.findChildren('p', recursive=False)[0].text)
+
 
 def get_all():
     prep_fl = BeautifulSoup(requests.get('https://vgtimes.ru/games/release-dates/all/sort-date/alltime/').text, 'lxml')
