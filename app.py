@@ -2,6 +2,23 @@ from reprlib import recursive_repr
 from urllib import response
 import requests
 from bs4 import BeautifulSoup
+import sqlite3
+
+
+def create_db_table(db):
+    sql_cr = db.cursor()
+    sql_cr.execute("""CREATE TABLE IF NOT EXISTS games(
+    g_id INTEGER PRIMARY KEY,
+    g_title TEXT NOT NULL,
+    release_date TEXT,
+    system_req TEXT,
+    g_description TEXT,
+    g_genres TEXT,
+    same_g TEXT
+    )""")
+
+def add_game(elems, db):
+    print(elems)
 
 def get_pic_name(url):
     lt = url.split('/')
@@ -26,44 +43,33 @@ def get_pic(div):
                 st.write(block)
 
 def get_title(pg):
-    g_html = BeautifulSoup(pg.text, 'lxml')
-    main_el = g_html.find('div', {'class': 'game_header'})
-    print(main_el.findChildren('h1', recursive=False)[0].text)
+    return BeautifulSoup(pg.text, 'lxml').find('div', {'class': 'game_header'}).findChildren('h1', recursive=False)[0].text
 
-def get_info(pg):
-    g_html = BeautifulSoup(pg.text, 'lxml')
-    elems = g_html.find_all('div', {'class': 'rads'})
-    descr = g_html.find('div', {'class':'game_story description'})
-    genres = g_html.find_all('div', {'class': 'gres'})[0].findChildren('a', recursive=False)
-    ch_req = g_html.find('div', {'class':'wrap ld'}).findChildren('ul', recursive=False)[0].findChildren('li', recursive=False)
-    print('Дата выхода:', end=' ')
+def get_genres(pg):
+    return [el.text for el in BeautifulSoup(pg.text, 'lxml').find_all('div', {'class': 'gres'})[0].findChildren('a', recursive=False)]
+
+def get_sys_req(pg):
+    if check_for_text('Системные требования', BeautifulSoup(pg.text, 'lxml').find('div', {'class':'wrap ld'}).findChildren('ul', recursive=False)[0].findChildren('li', recursive=False)):
+        return [tt.text for tt in (BeautifulSoup(pg.text, 'lxml').find('h2', {'class':'nhead'}, string='Системные требования').next_sibling.next_sibling.next_sibling.next_sibling.findChildren('li', recursive=False))]
+    return []
+
+def get_same_games(pg):
+    if check_for_text('Похожие игры', BeautifulSoup(pg.text, 'lxml').find('div', {'class':'wrap ld'}).findChildren('ul', recursive=False)[0].findChildren('li', recursive=False)):
+        return [sg.text for sg in (BeautifulSoup(pg.text, 'lxml').find('h2', {'class':'nhead'}, string='Похожие игры').next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.findChildren('li', recursive=False))]
+    return []
+
+def get_descr(pg):
+    return BeautifulSoup(pg.text, 'lxml').find('div', {'class':'game_story description'}).findChildren('p', recursive=False)[0].text
+
+def get_another(pg):
+    elems = BeautifulSoup(pg.text, 'lxml').find_all('div', {'class': 'rads'})
     if elems[0].findChildren('div', {'class': 'game_rank'}):
-        print(elems[1].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text) #дата выхода
-        print('Команда разработчиков:', end=' ')
-        print(elems[2].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text) #разработчик
+        return [elems[1].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text, elems[2].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text]
     else:
-        print(elems[0].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text) #дата выхода
-        print('Команда разработчиков:', end=' ')
-        print(elems[1].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text) #разработчик
-    print('Описание игры:')
-    print(descr.findChildren('p', recursive=False)[0].text)
-    print('Жанры:')
-    for el in genres:
-        print(el.text)
-    if check_for_text('Системные требования', ch_req):
-        req = g_html.find('h2', {'class':'nhead'}, string='Системные требования')
-        print('Системные требования:')
-        for tt in (req.next_sibling.next_sibling.next_sibling.next_sibling.findChildren('li', recursive=False)):
-            print(tt.text)
-    if check_for_text('Похожие игры', ch_req):
-        same_games = g_html.find('h2', {'class':'nhead'}, string='Похожие игры')
-        print('Похожие игры:')
-        for sg in (same_games.next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.next_sibling.findChildren('li', recursive=False)):
-            print(sg.text)
-    
+        return [elems[0].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text, elems[1].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text]
 
 
-def get_all():
+def get_all(db):
     prep_fl = BeautifulSoup(requests.get('https://vgtimes.ru/games/release-dates/all/sort-date/alltime/').text, 'lxml')
     pages_div = prep_fl.find('div', {'class':'pages'}).findChildren('div', recursive=False)[0].find_all('a')
     pages_count = int(pages_div[len(pages_div)-2].text) + 1
@@ -74,10 +80,13 @@ def get_all():
 
         for sh_elem in game_shit:
             page = requests.get('https://vgtimes.ru/' + sh_elem.findChildren('a', recursive=False)[0]['href'])
-            print('Название игры:', end=' ')
-            get_title(page)
-            get_info(page)
+            res = [get_title(page), get_genres(page), get_sys_req(page), get_same_games(page), get_descr(page), get_another(page)]
+            print(res)
+            '''get_info(page)
             get_pic(sh_elem)
+            add_game(db)'''
 
 if __name__ == '__main__':
-    get_all()
+    db = sqlite3.connect('games.db')
+    create_db_table(db)
+    get_all(db)
