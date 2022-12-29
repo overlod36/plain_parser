@@ -18,7 +18,18 @@ def create_db_table(db):
     )""")
 
 def add_game(elems, db):
-    print(elems)
+    db.execute(f"INSERT INTO games(g_title, release_date, system_req, g_description, g_genres, same_g) VALUES (?,?,?,?,?,?)", (elems[0], elems[5][0], conv_to_str(elems[2]), elems[4], conv_to_str(elems[1]), conv_to_str(elems[3])))
+    db.commit()
+
+def show_games(db):
+    sd = db.cursor()
+    print(list(sd.execute("SELECT * FROM games")))
+
+def conv_to_str(lst):
+    st = ""
+    for el in lst:
+        st = el + '|'
+    return st[:len(st)-1] 
 
 def get_pic_name(url):
     lt = url.split('/')
@@ -59,6 +70,7 @@ def get_same_games(pg):
     return []
 
 def get_descr(pg):
+    print(BeautifulSoup(pg.text, 'lxml').find('div', {'class':'game_story description'}).findChildren('p', recursive=False))
     return BeautifulSoup(pg.text, 'lxml').find('div', {'class':'game_story description'}).findChildren('p', recursive=False)[0].text
 
 def get_another(pg):
@@ -73,7 +85,7 @@ def get_all(db):
     prep_fl = BeautifulSoup(requests.get('https://vgtimes.ru/games/release-dates/all/sort-date/alltime/').text, 'lxml')
     pages_div = prep_fl.find('div', {'class':'pages'}).findChildren('div', recursive=False)[0].find_all('a')
     pages_count = int(pages_div[len(pages_div)-2].text) + 1
-    for i in range(1, pages_count):
+    for i in range(100, pages_count):
         response = requests.get('https://vgtimes.ru/games/release-dates/all/sort-date/alltime/page/' + str(i) + '/')
         flexer = BeautifulSoup(response.text, 'lxml')
         game_shit = flexer.find_all('div', {"class": "game_search"})
@@ -81,10 +93,12 @@ def get_all(db):
         for sh_elem in game_shit:
             page = requests.get('https://vgtimes.ru/' + sh_elem.findChildren('a', recursive=False)[0]['href'])
             res = [get_title(page), get_genres(page), get_sys_req(page), get_same_games(page), get_descr(page), get_another(page)]
+            #add_game(res, db)
             print(res)
-            '''get_info(page)
-            get_pic(sh_elem)
-            add_game(db)'''
+            
+        break
+    #show_games(db)
+            
 
 if __name__ == '__main__':
     db = sqlite3.connect('games.db')
