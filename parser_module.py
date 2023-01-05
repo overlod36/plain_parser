@@ -63,34 +63,8 @@ def get_another(pg):
     else:
         return [elems[0].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text, elems[1].findChildren('div', recursive=False)[0].findChildren('a', recursive=False)[0].text]
 
-
-def get_all():
-    result_list = []
+def get_pages_count():
     prep_fl = BeautifulSoup(requests.get('https://vgtimes.ru/games/release-dates/all/sort-date/alltime/').text, 'lxml')
     pages_div = prep_fl.find('div', {'class':'pages'}).findChildren('div', recursive=False)[0].find_all('a')
     pages_count = int(pages_div[len(pages_div)-2].text) + 1
-    while True:
-        print(f'Количество страниц -> {pages_count}')
-        cnt = int(input('Введите количество страниц -> '))
-        pg = int(input('Номер страницы -> '))
-        if not str(pg).isnumeric() or not str(cnt).isnumeric():
-            print('Введено не число!')
-        elif pg < 0 or cnt < 0:
-            print('Количество страниц отрицательно!')
-        elif pg > pages_count or cnt > pages_count:
-            print(f'Максимальное количество страниц {pages_count}!')
-        elif (pg + cnt) > pages_count:
-            print('Выход за пределы!')
-        else:
-            break
-    for i in range(pg, pg+cnt):
-        response = requests.get('https://vgtimes.ru/games/release-dates/all/sort-date/alltime/page/' + str(i) + '/')
-        flexer = BeautifulSoup(response.text, 'lxml')
-        game_shit = flexer.find_all('div', {"class": "game_search"})
-        j = 1
-        for sh_elem in game_shit:
-            page = requests.get('https://vgtimes.ru/' + sh_elem.findChildren('a', recursive=False)[0]['href'])
-            result_list.append([get_title(page), get_genres(page), get_sys_req(page), get_same_games(page), get_descr(page)])
-            j += 1
-    return result_list
-
+    return pages_count

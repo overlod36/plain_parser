@@ -18,11 +18,11 @@ def fill_table(data):
     sheet.set_column(3, 3, 175)
     row = 1
     set_titles(wb, sheet)
-    for title, genres, sys_req, same_games, descr in data:
-        sheet.write(row, 0, title)
-        sheet.write(row, 1, ', '.join(genres)) if len(genres) != 0 else sheet.write(row, 1, '-')
-        sheet.write(row, 2, ', '.join(sys_req)) if len(sys_req) != 0 else sheet.write(row, 2, '-')
-        sheet.write(row, 3, ', '.join(same_games)) if len(same_games) != 0 else sheet.write(row, 3, '-')
-        sheet.write(row, 4, descr)
+    for element in data:
+        sheet.write(row, 0, element['title'])
+        sheet.write(row, 1, ', '.join(element['genres'])) if len(element['genres']) != 0 else sheet.write(row, 1, '-')
+        sheet.write(row, 2, ', '.join(element['sys_req'])) if len(element['sys_req']) != 0 else sheet.write(row, 2, '-')
+        sheet.write(row, 3, ', '.join(element['same_games'])) if len(element['same_games']) != 0 else sheet.write(row, 3, '-')
+        sheet.write(row, 4, element['description'])
         row += 1
     wb.close()
