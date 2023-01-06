@@ -9,8 +9,8 @@ def set_titles(wb, sheet):
         column += 1
 
 
-def fill_table(data):
-    wb = xlsxwriter.Workbook('result.xlsx')
+def fill_table(data, name):
+    wb = xlsxwriter.Workbook(name)
     sheet = wb.add_worksheet()
     sheet.set_column(0, 0, 50)
     sheet.set_column(1, 1, 150)
