@@ -2,6 +2,20 @@ from reprlib import recursive_repr
 from urllib import response
 import requests
 from bs4 import BeautifulSoup
+import os, sys
+
+for_pr = False
+
+def print_progress(message):
+    global for_pr
+    if for_pr:
+        sys.stdout.write('\x1b[1A')
+        sys.stdout.write('\x1b[2K')
+        print(message)
+    else:
+        print(message)
+        for_pr = True
+
 
 def conv_to_str(lst):
     st = ""
@@ -49,8 +63,22 @@ def get_same_games(pg):
 
 def get_descr(pg):
     descr_html = BeautifulSoup(pg.text, 'lxml').find('div', {'class':'game_story description'})
-    if len(descr_html) != 0:
+    if len(descr_html) != 0 and len(descr_html.findChildren('p', recursive=False)) != 0: 
         return descr_html.findChildren('p', recursive=False)[0].text
+    else:
+        return []
+
+def get_steam_rank(pg):
+    steam_html = BeautifulSoup(pg.text, 'lxml').find_all('div', {'class':'game_rank steam'})
+    if len(steam_html) != 0:
+        return steam_html[0].findChildren('div', {'class':'score'})[0].text.split('/')[0]
+    else:
+        return []
+    
+def get_metacritic_rank(pg):
+    meta_html = BeautifulSoup(pg.text, 'lxml').find_all('div', {'class':'game_rank mc'})
+    if len(meta_html) != 0:
+        return meta_html[0].findChildren('div', {'class':'score'})[0].text.split('/')[0]
     else:
         return []
 

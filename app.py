@@ -4,6 +4,7 @@ import ex_conv
 import xlsxwriter
 import time
 
+
 def menu():
     pages_count = parser_module.get_pages_count()
     while True:
