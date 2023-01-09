@@ -2,4 +2,5 @@
 /__pycache__
 result.xlsx
 result1.xlsx
-
+/journals
+/async_parse.py
