@@ -1,11 +1,11 @@
-import async_parse, single_thread_parse
+import gs_parse
 import ex_conv, parser_module, data_module
 import xlsxwriter
 import time
 
 
 def menu():
-    pages_count = parser_module.get_pages_count()
+    pages_count = parser_module.GS_Parse.get_pages_count()
     while True:
         print(f'Количество страниц -> {pages_count}')
         cnt = int(input('Введите количество страниц -> '))
@@ -26,9 +26,9 @@ def menu():
 if __name__ == "__main__":
     choice = menu()
     start_time = time.time()
-    single_thread_parse.run_parse(choice[0], choice[1])
+    gs_parse.run_parse(choice[0], choice[1])
     print("|- %s секунд -|" % (time.time() - start_time))
-    data = single_thread_parse.get_result_list()
+    data = gs_parse.get_result_list()
     data_module.write_journal(data, f'/game_site/[first_page={choice[0]}][pages_cnt={choice[1]}]')
     # try:
     #     ex_conv.fill_table(data, 'result1.xlsx')

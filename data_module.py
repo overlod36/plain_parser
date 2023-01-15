@@ -12,3 +12,8 @@ def print_journal_list(): # изменить вывод с учетом разн
     for file in os.listdir(f'{pt}/journals'):
         if file.endswith('.json'):
             print(file)
+
+def get_site():
+    with open(f'{pt}/config/site_name.txt', 'r') as file:
+        return file.readline()
+
